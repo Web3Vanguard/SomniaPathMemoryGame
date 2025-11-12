@@ -27,9 +27,12 @@ A memory-based path game built with React + Vite, featuring Web3 wallet integrat
    Create a `.env` file in the root directory:
    ```env
    VITE_WALLET_CONNECT_PROJECT_ID=your_project_id_here
+   VITE_SOMNIA_ENABLED=true
    ```
    
    Get your Project ID from [WalletConnect Cloud](https://cloud.walletconnect.com)
+   
+   **Note:** Somnia data streams integration is optional. Set `VITE_SOMNIA_ENABLED=true` to enable publishing level completion data to Somnia blockchain.
 
 3. **Move assets to public directory:**
    ```bash
