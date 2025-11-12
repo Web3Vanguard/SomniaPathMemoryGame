@@ -196,6 +196,35 @@ button:disabled {
     font-weight: 600;
 }
 
+.somnia-status {
+    margin: 15px 0;
+    font-size: 0.9rem;
+}
+
+.somnia-publishing {
+    color: #f8bb22;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.somnia-success {
+    color: #4cc9f0;
+}
+
+.somnia-error {
+    color: #f72585;
+    font-size: 0.8rem;
+}
+
+.somnia-info {
+    color: #a7a7a7;
+    font-size: 0.8rem;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
 .wallet-connect-container {
     position: absolute;
     top: 10px;
