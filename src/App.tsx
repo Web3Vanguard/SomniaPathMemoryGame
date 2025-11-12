@@ -2,11 +2,13 @@ import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { config } from './config/walletConfig'
 import { useGame } from './hooks/useGame'
+import { useSomnia } from './hooks/useSomnia'
 import MenuScreen from './components/MenuScreen'
 import HowToPlayScreen from './components/HowToPlayScreen'
 import GameScreen from './components/GameScreen'
 import LevelCompleteScreen from './components/LevelCompleteScreen'
 import GameOverScreen from './components/GameOverScreen'
+import { useEffect } from 'react'
 
 const queryClient = new QueryClient()
 
@@ -32,7 +34,36 @@ function GameContent() {
     showMenu,
     returnToMenu,
     handleTileClick,
+    setOnLevelComplete,
   } = useGame()
+
+  // Initialize Somnia and set up level completion callback
+  const { 
+    publishLevelCompletion, 
+    isEnabled: isSomniaEnabled, 
+    isInitialized: isSomniaInitialized,
+    isPublishing,
+    lastPublishError,
+    publishSuccess
+  } = useSomnia()
+
+  useEffect(() => {
+    if (isSomniaEnabled && isSomniaInitialized) {
+      setOnLevelComplete((level, startTime, endTime, score, lives) => {
+        publishLevelCompletion(level, startTime, endTime, score, lives)
+          .then((success) => {
+            if (success) {
+              console.log(`✅ Level ${level} completion published to Somnia`)
+            } else {
+              console.warn(`⚠️ Failed to publish level ${level} completion to Somnia`)
+            }
+          })
+          .catch((error) => {
+            console.error('Error publishing to Somnia:', error)
+          })
+      })
+    }
+  }, [isSomniaEnabled, isSomniaInitialized, publishLevelCompletion, setOnLevelComplete])
 
   return (
     <div className="game-container">
@@ -69,6 +100,10 @@ function GameContent() {
         <LevelCompleteScreen
           score={score}
           bonus={bonusPoints}
+          isPublishingToSomnia={isPublishing}
+          somniaPublishError={lastPublishError}
+          somniaPublishSuccess={publishSuccess}
+          somniaEnabled={isSomniaEnabled}
           onNextLevel={nextLevel}
         />
       )}

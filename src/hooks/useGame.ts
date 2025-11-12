@@ -41,9 +41,11 @@ export function useGame() {
   const [isPlayerTurn, setIsPlayerTurn] = useState(false)
   const [tileStates, setTileStates] = useState<Record<number, 'correct' | 'wrong' | null>>({})
   const [bonusPoints, setBonusPoints] = useState(0)
+  const [levelStartTime, setLevelStartTime] = useState<number>(0)
 
   const pathTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const tilesRef = useRef<HTMLDivElement>(null)
+  const onLevelCompleteRef = useRef<((level: number, startTime: number, endTime: number, score: number, lives: number) => void) | null>(null)
 
   const getNeighbors = useCallback((pos: number, gridSize: number): number[] => {
     const neighbors: number[] = []
@@ -101,6 +103,9 @@ export function useGame() {
         setHighlightedTile(null)
         setIsShowingPath(false)
         setIsPlayerTurn(true)
+        // Record level start time when player can start interacting
+        const startTime = Math.floor(Date.now() / 1000)
+        setLevelStartTime(startTime)
       }
     }
 
@@ -135,11 +140,19 @@ export function useGame() {
       if (newPlayerPath.length === correctPath.length) {
         setIsPlayerTurn(false)
         const levelScore = currentLevel * 50
-        setScore(prev => prev + levelScore)
+        const newScore = score + levelScore
+        setScore(newScore)
         
         const bonus = currentLevel * 100 + lives * 50
         setBonusPoints(bonus)
-        setScore(prev => prev + bonus)
+        const finalScore = newScore + bonus
+        setScore(finalScore)
+        
+        // Record level end time and publish to Somnia if callback is set
+        const endTime = Math.floor(Date.now() / 1000)
+        if (onLevelCompleteRef.current) {
+          onLevelCompleteRef.current(currentLevel, levelStartTime, endTime, finalScore, lives)
+        }
         
         playSound(sounds.correct)
         setTimeout(() => {
@@ -175,7 +188,7 @@ export function useGame() {
         }, 800)
       }
     }
-  }, [isPlayerTurn, isShowingPath, correctPath, playerPath, currentLevel, lives])
+  }, [isPlayerTurn, isShowingPath, correctPath, playerPath, currentLevel, lives, score, levelStartTime])
 
   const startGame = useCallback(() => {
     setCurrentLevel(1)
@@ -244,6 +257,11 @@ export function useGame() {
     }
   }, [])
 
+  // Set callback for level completion (for Somnia publishing)
+  const setOnLevelComplete = useCallback((callback: (level: number, startTime: number, endTime: number, score: number, lives: number) => void) => {
+    onLevelCompleteRef.current = callback
+  }, [])
+
   return {
     currentScreen,
     currentLevel,
@@ -266,6 +284,7 @@ export function useGame() {
     showMenu,
     returnToMenu,
     handleTileClick,
+    setOnLevelComplete,
   }
 }
 
