@@ -21,8 +21,6 @@ export default function GameScreen({
   score,
   lives,
   gridSize,
-  correctPath,
-  playerPath,
   highlightedTile,
   isShowingPath,
   isPlayerTurn,

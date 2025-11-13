@@ -43,8 +43,7 @@ export function useGame() {
   const [bonusPoints, setBonusPoints] = useState(0)
   const [levelStartTime, setLevelStartTime] = useState<number>(0)
 
-  const pathTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const tilesRef = useRef<HTMLDivElement>(null)
+  const pathTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const onLevelCompleteRef = useRef<((level: number, startTime: number, endTime: number, score: number, lives: number) => void) | null>(null)
 
   const getNeighbors = useCallback((pos: number, gridSize: number): number[] => {
@@ -82,7 +81,7 @@ export function useGame() {
     return path
   }, [getNeighbors])
 
-  const showPathToPlayer = useCallback((path: number[], showTime: number) => {
+  const showPathToPlayer = useCallback((path: number[]) => {
     setIsShowingPath(true)
     setIsPlayerTurn(false)
     setHighlightedTile(null)
@@ -123,7 +122,7 @@ export function useGame() {
     setCorrectPath(path)
 
     setTimeout(() => {
-      showPathToPlayer(path, config.showTime)
+      showPathToPlayer(path)
     }, 100)
   }, [currentLevel, generatePath, showPathToPlayer])
 

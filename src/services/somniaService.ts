@@ -1,7 +1,6 @@
 import { SDK, SchemaEncoder, zeroBytes32 } from '@somnia-chain/streams'
-import { createPublicClient, createWalletClient, http, toHex, PublicClient, WalletClient, keccak256, toBytes } from 'viem'
+import { PublicClient, WalletClient, keccak256, toBytes } from 'viem'
 import { waitForTransactionReceipt } from 'viem/actions'
-import { dreamChain } from '../config/somniaChain'
 import { LevelCompletionData } from '../types/somnia'
 
 const SOMNIA_PATH_SCHEMA = `address playerAddress, uint256 levelCompleted, uint256 startTime, uint256 endTime, uint256 score, uint256 livesRemaining`
@@ -78,8 +77,8 @@ class SomniaService {
         false
       )
 
-      if (txHash && this.publicClient) {
-        await waitForTransactionReceipt(this.publicClient, { hash: txHash })
+      if (txHash && this.publicClient && typeof txHash === 'string') {
+        await waitForTransactionReceipt(this.publicClient, { hash: txHash as `0x${string}` })
         console.log(`✅ Schema registered, Tx: ${txHash}`)
       } else {
         console.log('ℹ️ Schema already registered or no transaction needed')
@@ -136,7 +135,7 @@ class SomniaService {
       // Publish to Somnia
       const dataStreams = [{ 
         id: streamId, 
-        schemaId: this.schemaId, 
+        schemaId: this.schemaId as `0x${string}`, 
         data: encodedData 
       }]
 
@@ -176,7 +175,7 @@ class SomniaService {
       // Fetch data for each known player
       for (const playerAddress of knownPlayers) {
         try {
-          const playerData = await this.sdk.streams.getAllPublisherDataForSchema(this.schemaId, playerAddress)
+          const playerData = await this.sdk.streams.getAllPublisherDataForSchema(this.schemaId as `0x${string}`, playerAddress as `0x${string}`)
           
           if (!playerData || playerData.length === 0) {
             continue
@@ -184,7 +183,9 @@ class SomniaService {
 
           for (const encodedData of playerData) {
             try {
-              const decoded = this.encoder.decodeData(encodedData)
+              // Check if encodedData is a hex string
+              if (typeof encodedData !== 'string') continue
+              const decoded = this.encoder.decodeData(encodedData as `0x${string}`)
               
               let playerAddr = ''
               let levelCompleted = 0
@@ -249,7 +250,7 @@ class SomniaService {
       console.log('📖 Fetching history for player:', playerAddress)
       
       // Query all data for this schema and publisher (player)
-      const allData = await this.sdk.streams.getAllPublisherDataForSchema(this.schemaId, playerAddress)
+      const allData = await this.sdk.streams.getAllPublisherDataForSchema(this.schemaId as `0x${string}`, playerAddress as `0x${string}`)
       console.log('📖 Found data items:', allData?.length || 0)
       console.log('📖 All data:', allData)
       
@@ -262,8 +263,10 @@ class SomniaService {
       
       for (const encodedData of allData) {
         try {
+          // Check if encodedData is a hex string
+          if (typeof encodedData !== 'string') continue
           // Decode the hex string data
-          const decoded = this.encoder.decodeData(encodedData)
+          const decoded = this.encoder.decodeData(encodedData as `0x${string}`)
           
           let playerAddr = ''
           let levelCompleted = 0

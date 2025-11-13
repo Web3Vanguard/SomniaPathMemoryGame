@@ -1,15 +1,14 @@
 import { useEffect, useState, useCallback } from 'react'
-import { usePublicClient, useWalletClient, useAccount } from 'wagmi'
+import { useWalletClient, useAccount } from 'wagmi'
 import { somniaService } from '../services/somniaService'
 import { LevelCompletionData } from '../types/somnia'
 import { dreamChain } from '../config/somniaChain'
-import { createPublicClient, createWalletClient, http } from 'viem'
+import { createPublicClient, http } from 'viem'
 
 const isSomniaEnabled = import.meta.env.VITE_SOMNIA_ENABLED === 'true'
 
 export function useSomnia() {
   const { address, isConnected } = useAccount()
-  const publicClient = usePublicClient({ chainId: dreamChain.id })
   const { data: walletClient } = useWalletClient({ chainId: dreamChain.id })
   const [isInitialized, setIsInitialized] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
@@ -157,19 +156,6 @@ export function useSomnia() {
       return []
     }
   }, [isInitialized, address])
-
-  /**
-   * Add current player to known players list
-   */
-  const addPlayerToLeaderboard = useCallback(() => {
-    if (!address) return
-    
-    const knownPlayers = JSON.parse(localStorage.getItem('knownPlayers') || '[]')
-    if (!knownPlayers.includes(address)) {
-      knownPlayers.push(address)
-      localStorage.setItem('knownPlayers', JSON.stringify(knownPlayers))
-    }
-  }, [address])
 
   /**
    * Fetch leaderboard
