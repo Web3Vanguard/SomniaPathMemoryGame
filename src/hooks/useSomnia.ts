@@ -131,6 +131,23 @@ export function useSomnia() {
     }
   }, [isInitialized, address])
 
+  /**
+   * Fetch player's game history
+   */
+  const fetchPlayerHistory = useCallback(async () => {
+    if (!isSomniaEnabled || !isInitialized || !address) {
+      console.log('Cannot fetch history: Somnia not available or wallet not connected')
+      return []
+    }
+
+    try {
+      return await somniaService.fetchPlayerHistory(address)
+    } catch (error) {
+      console.error('Error fetching player history:', error)
+      return []
+    }
+  }, [isInitialized, address])
+
   return {
     isEnabled: isSomniaEnabled,
     isInitialized,
@@ -140,6 +157,7 @@ export function useSomnia() {
     publishSuccess,
     lastPublishedLevel,
     publishLevelCompletion,
+    fetchPlayerHistory,
   }
 }
 

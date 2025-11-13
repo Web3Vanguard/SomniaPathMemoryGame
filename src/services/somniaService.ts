@@ -72,7 +72,7 @@ class SomniaService {
           {
             id: 'somniaDataPath',
             schema: SOMNIA_PATH_SCHEMA,
-            parentSchemaId: zeroBytes32
+            parentSchemaId: zeroBytes32 as  `0x${string}`
           },
         ],
         false
@@ -153,6 +153,80 @@ class SomniaService {
     } catch (error) {
       console.error('❌ Error publishing to Somnia:', error)
       return null
+    }
+  }
+
+  /**
+   * Fetch player's game history from Somnia
+   */
+  async fetchPlayerHistory(playerAddress: string): Promise<LevelCompletionData[]> {
+    if (!this.isInitialized || !this.sdk || !this.schemaId || !this.encoder) {
+      console.warn('❌ Somnia service not initialized. Cannot fetch history.')
+      return []
+    }
+
+    try {
+      console.log('📖 Fetching history for player:', playerAddress)
+      
+      // Query all data for this schema and publisher (player)
+      const allData = await this.sdk.streams.getAllPublisherDataForSchema(this.schemaId, playerAddress)
+      console.log('📖 Found data items:', allData?.length || 0)
+      console.log('📖 All data:', allData)
+      
+      if (!allData || allData.length === 0) {
+        return []
+      }
+
+      // Parse the data items
+      const history: LevelCompletionData[] = []
+      
+      for (const encodedData of allData) {
+        try {
+          // Decode the hex string data
+          const decoded = this.encoder.decodeData(encodedData)
+          
+          let playerAddr = ''
+          let levelCompleted = 0
+          let startTime = 0
+          let endTime = 0
+          let score = 0
+          let livesRemaining = 0
+
+          // Extract values from the decoded fields
+          for (const field of decoded) {
+            const val = field.value?.value ?? field.value
+            
+            if (field.name === 'playerAddress') playerAddr = val.toString()
+            if (field.name === 'levelCompleted') levelCompleted = Number(val)
+            if (field.name === 'startTime') startTime = Number(val)
+            if (field.name === 'endTime') endTime = Number(val)
+            if (field.name === 'score') score = Number(val)
+            if (field.name === 'livesRemaining') livesRemaining = Number(val)
+          }
+
+          const data: LevelCompletionData = {
+            playerAddress: playerAddr,
+            levelCompleted,
+            startTime,
+            endTime,
+            score,
+            livesRemaining,
+          }
+          
+          history.push(data)
+        } catch (parseError) {
+          console.warn('Failed to parse data item:', parseError)
+        }
+      }
+
+      // Sort by endTime descending (most recent first)
+      history.sort((a, b) => b.endTime - a.endTime)
+      
+      console.log('📖 Player history:', history.length, 'completions')
+      return history
+    } catch (error) {
+      console.error('❌ Error fetching player history:', error)
+      return []
     }
   }
 

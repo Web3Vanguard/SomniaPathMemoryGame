@@ -8,6 +8,7 @@ import HowToPlayScreen from './components/HowToPlayScreen'
 import GameScreen from './components/GameScreen'
 import LevelCompleteScreen from './components/LevelCompleteScreen'
 import GameOverScreen from './components/GameOverScreen'
+import GameHistory from './components/GameHistory'
 import { useEffect } from 'react'
 
 const queryClient = new QueryClient()
@@ -31,6 +32,7 @@ function GameContent() {
     nextLevel,
     playAgain,
     showHowToPlay,
+    showHistory,
     showMenu,
     returnToMenu,
     handleTileClick,
@@ -44,7 +46,8 @@ function GameContent() {
     isInitialized: isSomniaInitialized,
     isPublishing,
     lastPublishError,
-    publishSuccess
+    publishSuccess,
+    fetchPlayerHistory
   } = useSomnia()
 
   console.log(isSomniaEnabled, isSomniaInitialized);
@@ -75,11 +78,20 @@ function GameContent() {
         <MenuScreen
           onStartGame={startGame}
           onShowHowToPlay={showHowToPlay}
+          onShowHistory={showHistory}
         />
       )}
 
       {currentScreen === 'howToPlay' && (
         <HowToPlayScreen onBackToMenu={showMenu} />
+      )}
+
+      {currentScreen === 'history' && (
+        <GameHistory
+          fetchHistory={fetchPlayerHistory}
+          isEnabled={isSomniaEnabled && isSomniaInitialized}
+          onClose={showMenu}
+        />
       )}
 
       {currentScreen === 'game' && (
