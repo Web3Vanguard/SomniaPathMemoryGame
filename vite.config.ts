@@ -31,6 +31,12 @@ import rollupNodePolyFill from 'rollup-plugin-node-polyfills'
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      buffer: 'buffer',
+    },
+  },
   define: {
     global: 'globalThis',
   },
@@ -50,5 +56,9 @@ export default defineConfig({
     rollupOptions: {
       plugins: [rollupNodePolyFill()],
     },
+  },
+  server: {
+    port: 3000,
+    open: true,
   },
 })

@@ -60,7 +60,6 @@ export default function WalletConnect() {
               key={connector.id}
               onClick={() => handleConnectorClick(connector.id)}
               className="connector-button"
-              disabled={!connector.ready}
             >
               {connector.name}
             </button>
