@@ -34,22 +34,22 @@ export function useSomnia() {
 
     const initializeSomnia = async () => {
       try {
+        console.log('🔧 Initializing Somnia...', { isConnected, address, hasWalletClient: !!walletClient })
+        
         const somniaPublicClient = createPublicClient({
           chain: dreamChain,
           transport: http(),
         })
 
-        const somniaWalletClient = walletClient 
-          ? createWalletClient({
-              account: walletClient.account,
-              chain: dreamChain,
-              transport: http(),
-            })
-          : null
+        // Use the wagmi wallet client directly - it's already connected to the user's wallet
+        const somniaWalletClient = walletClient || null
+
+        console.log('🔧 Created clients:', { hasPublicClient: !!somniaPublicClient, hasWalletClient: !!somniaWalletClient })
 
         await somniaService.initialize(somniaPublicClient, somniaWalletClient)
         setIsInitialized(true)
         setLastPublishError(null)
+        console.log('✅ Somnia initialized, isReady:', somniaService.isReady())
       } catch (error) {
         console.error('Failed to initialize Somnia:', error)
         setLastPublishError(error instanceof Error ? error.message : 'Unknown error')
@@ -70,16 +70,20 @@ export function useSomnia() {
     score: number,
     lives: number
   ): Promise<boolean> => {
+    console.log('🚀 publishLevelCompletion called', { level, startTime, endTime, score, lives })
+    console.log('🔍 Checks:', { isSomniaEnabled, isInitialized, address, isReady: somniaService.isReady() })
+    
     if (!isSomniaEnabled || !isInitialized || !address) {
-      console.log('Somnia not available or wallet not connected')
+      console.log('❌ Somnia not available or wallet not connected')
       return false
     }
 
     if (!somniaService.isReady()) {
-      console.warn('Somnia service not ready')
+      console.warn('❌ Somnia service not ready')
       return false
     }
 
+    console.log('✅ All checks passed, setting publishing state...')
     setIsPublishing(true)
     setLastPublishError(null)
     setPublishSuccess(false)

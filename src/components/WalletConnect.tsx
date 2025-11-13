@@ -1,12 +1,41 @@
-import { useAccount } from 'wagmi'
-import { useWeb3Modal } from '@web3modal/wagmi/react'
+import { useState, useEffect, useRef } from 'react'
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
 
 export default function WalletConnect() {
   const { address, isConnected } = useAccount()
-  const { open } = useWeb3Modal()
+  const { connect, connectors, isPending, error } = useConnect()
+  const { disconnect } = useDisconnect()
+  const [showConnectors, setShowConnectors] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowConnectors(false)
+      }
+    }
+
+    if (showConnectors) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showConnectors])
 
   const handleClick = () => {
-    open()
+    if (isConnected) {
+      disconnect()
+    } else {
+      setShowConnectors(!showConnectors)
+    }
+  }
+
+  const handleConnectorClick = (connectorId: string) => {
+    const selectedConnector = connectors.find(c => c.id === connectorId)
+    if (selectedConnector) {
+      connect({ connector: selectedConnector })
+      setShowConnectors(false)
+    }
   }
 
   const formatAddress = (addr: string | undefined) => {
@@ -15,13 +44,34 @@ export default function WalletConnect() {
   }
 
   return (
-    <div className="wallet-connect-container">
+    <div className="wallet-connect-container" ref={menuRef}>
       <button 
         className={`wallet-button ${isConnected ? 'connected' : ''}`}
         onClick={handleClick}
+        disabled={isPending}
       >
-        {isConnected ? `Connected: ${formatAddress(address)}` : 'Connect Wallet'}
+        {isPending ? 'Connecting...' : isConnected ? `Connected: ${formatAddress(address)}` : 'Connect Wallet'}
       </button>
+      
+      {showConnectors && !isConnected && connectors.length > 0 && (
+        <div className="connector-menu">
+          {connectors.map((connector) => (
+            <button
+              key={connector.id}
+              onClick={() => handleConnectorClick(connector.id)}
+              className="connector-button"
+              disabled={!connector.ready}
+            >
+              {connector.name}
+            </button>
+          ))}
+          {error && (
+            <div className="connector-error">
+              {error.message}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

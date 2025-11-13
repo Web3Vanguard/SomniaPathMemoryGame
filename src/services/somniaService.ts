@@ -1,5 +1,5 @@
 import { SDK, SchemaEncoder, zeroBytes32 } from '@somnia-chain/streams'
-import { createPublicClient, createWalletClient, http, toHex, PublicClient, WalletClient } from 'viem'
+import { createPublicClient, createWalletClient, http, toHex, PublicClient, WalletClient, keccak256, toBytes } from 'viem'
 import { waitForTransactionReceipt } from 'viem/actions'
 import { dreamChain } from '../config/somniaChain'
 import { LevelCompletionData } from '../types/somnia'
@@ -18,6 +18,18 @@ class SomniaService {
    * Initialize the Somnia service with wallet clients
    */
   async initialize(publicClient: PublicClient, walletClient: WalletClient | null): Promise<void> {
+    // If already initialized but wallet client changed, update it
+    if (this.isInitialized && this.sdk && walletClient && !this.walletClient) {
+      console.log('🔄 Updating wallet client...')
+      this.walletClient = walletClient
+      this.sdk = new SDK({ 
+        public: publicClient,
+        wallet: walletClient
+      })
+      console.log('✅ Wallet client updated, isReady:', this.isReady())
+      return
+    }
+
     if (this.isInitialized && this.sdk) {
       return
     }
@@ -85,17 +97,27 @@ class SomniaService {
    * Publish level completion data to Somnia blockchain
    */
   async publishLevelCompletion(data: LevelCompletionData): Promise<string | null> {
+    console.log('📤 publishLevelCompletion called with:', data)
+    console.log('📋 Service state:', { 
+      isInitialized: this.isInitialized, 
+      hasSdk: !!this.sdk, 
+      hasSchemaId: !!this.schemaId, 
+      hasEncoder: !!this.encoder,
+      hasWalletClient: !!this.walletClient 
+    })
+
     if (!this.isInitialized || !this.sdk || !this.schemaId || !this.encoder) {
-      console.warn('Somnia service not initialized. Cannot publish data.')
+      console.warn('❌ Somnia service not initialized. Cannot publish data.')
       return null
     }
 
     if (!this.walletClient) {
-      console.warn('Wallet not connected. Cannot publish to Somnia.')
+      console.warn('❌ Wallet not connected. Cannot publish to Somnia.')
       return null
     }
 
     try {
+      console.log('🔐 Encoding data...')
       const encodedData = this.encoder.encodeData([
         { name: 'playerAddress', value: data.playerAddress, type: 'address' },
         { name: 'levelCompleted', value: BigInt(data.levelCompleted), type: 'uint256' },
@@ -104,10 +126,12 @@ class SomniaService {
         { name: 'score', value: BigInt(data.score), type: 'uint256' },
         { name: 'livesRemaining', value: BigInt(data.livesRemaining), type: 'uint256' },
       ])
+      console.log('✅ Data encoded')
 
-      const streamId = toHex(`somniaPath-${data.playerAddress}-${data.levelCompleted}-${data.endTime}`, { 
-        size: 32 
-      })
+      // Create a unique stream ID by hashing the data (ensures 32 bytes)
+      const streamIdString = `somniaPath-${data.playerAddress}-${data.levelCompleted}-${data.endTime}`
+      const streamId = keccak256(toBytes(streamIdString))
+      console.log('🆔 Stream ID:', streamId)
 
       // Publish to Somnia
       const dataStreams = [{ 
@@ -116,12 +140,18 @@ class SomniaService {
         data: encodedData 
       }]
 
+      console.log('📡 Calling sdk.streams.set...')
       const txHash = await this.sdk.streams.set(dataStreams)
+      console.log('📡 sdk.streams.set returned:', txHash)
       
-      console.log(`✅ Published level ${data.levelCompleted} completion to Somnia. Tx: ${txHash}`)
+      if (txHash) {
+        console.log(`✅ Published level ${data.levelCompleted} completion to Somnia. Tx: ${txHash}`)
+      } else {
+        console.warn('⚠️ No transaction hash returned from sdk.streams.set')
+      }
       return txHash
     } catch (error) {
-      console.error('Error publishing to Somnia:', error)
+      console.error('❌ Error publishing to Somnia:', error)
       return null
     }
   }

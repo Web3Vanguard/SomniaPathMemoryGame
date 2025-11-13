@@ -47,9 +47,13 @@ function GameContent() {
     publishSuccess
   } = useSomnia()
 
+  console.log(isSomniaEnabled, isSomniaInitialized);
+
   useEffect(() => {
     if (isSomniaEnabled && isSomniaInitialized) {
+      console.log('🔧 Setting up Somnia level completion callback')
       setOnLevelComplete((level, startTime, endTime, score, lives) => {
+        console.log('🎯 Level complete callback triggered!', { level, startTime, endTime, score, lives })
         publishLevelCompletion(level, startTime, endTime, score, lives)
           .then((success) => {
             if (success) {

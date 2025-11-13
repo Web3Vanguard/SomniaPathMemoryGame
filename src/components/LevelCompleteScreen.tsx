@@ -17,6 +17,9 @@ export default function LevelCompleteScreen({
   somniaEnabled = false,
   onNextLevel 
 }: LevelCompleteScreenProps) {
+  
+  console.log(score, bonus, isPublishingToSomnia, somniaPublishError, somniaPublishSuccess, somniaEnabled)
+
   return (
     <div className="level-complete-screen active">
       <h2>Level Complete!</h2>

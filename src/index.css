@@ -252,6 +252,55 @@ button:disabled {
     color: #1a1a2e;
 }
 
+.connector-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 5px;
+    background-color: #16213e;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    min-width: 200px;
+}
+
+.connector-button {
+    width: 100%;
+    background-color: #0f3460;
+    color: #e6e6e6;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-bottom: 5px;
+    transition: all 0.2s ease;
+}
+
+.connector-button:hover {
+    background-color: #4cc9f0;
+    color: #1a1a2e;
+}
+
+.connector-button:last-child {
+    margin-bottom: 0;
+}
+
+.connector-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.connector-error {
+    color: #f72585;
+    font-size: 0.7rem;
+    margin-top: 5px;
+    padding: 5px;
+    background-color: rgba(247, 37, 133, 0.1);
+    border-radius: 5px;
+}
+
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     20%, 60% { transform: translateX(-5px); }

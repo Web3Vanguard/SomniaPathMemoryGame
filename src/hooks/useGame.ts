@@ -150,8 +150,12 @@ export function useGame() {
         
         // Record level end time and publish to Somnia if callback is set
         const endTime = Math.floor(Date.now() / 1000)
+        console.log('📊 Level complete! Callback exists?', !!onLevelCompleteRef.current)
         if (onLevelCompleteRef.current) {
+          console.log('📤 Calling level complete callback with:', { currentLevel, levelStartTime, endTime, finalScore, lives })
           onLevelCompleteRef.current(currentLevel, levelStartTime, endTime, finalScore, lives)
+        } else {
+          console.warn('⚠️ No level complete callback registered!')
         }
         
         playSound(sounds.correct)
