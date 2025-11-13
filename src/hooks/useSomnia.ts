@@ -103,6 +103,16 @@ export function useSomnia() {
       
       if (txHash) {
         console.log(`✅ Level ${level} completion published successfully: ${txHash}`)
+        
+        // Add player to known players list for leaderboard
+        if (address) {
+          const knownPlayers = JSON.parse(localStorage.getItem('knownPlayers') || '[]')
+          if (!knownPlayers.includes(address)) {
+            knownPlayers.push(address)
+            localStorage.setItem('knownPlayers', JSON.stringify(knownPlayers))
+          }
+        }
+        
         setIsPublishing(false)
         setPublishSuccess(true)
         setLastPublishError(null)
@@ -148,6 +158,44 @@ export function useSomnia() {
     }
   }, [isInitialized, address])
 
+  /**
+   * Add current player to known players list
+   */
+  const addPlayerToLeaderboard = useCallback(() => {
+    if (!address) return
+    
+    const knownPlayers = JSON.parse(localStorage.getItem('knownPlayers') || '[]')
+    if (!knownPlayers.includes(address)) {
+      knownPlayers.push(address)
+      localStorage.setItem('knownPlayers', JSON.stringify(knownPlayers))
+    }
+  }, [address])
+
+  /**
+   * Fetch leaderboard
+   */
+  const fetchLeaderboard = useCallback(async () => {
+    if (!isSomniaEnabled || !isInitialized) {
+      console.log('Cannot fetch leaderboard: Somnia not available')
+      return []
+    }
+
+    try {
+      // Get list of known players from localStorage
+      const knownPlayers = JSON.parse(localStorage.getItem('knownPlayers') || '[]')
+      
+      if (knownPlayers.length === 0) {
+        console.log('No known players yet')
+        return []
+      }
+      
+      return await somniaService.fetchLeaderboard(knownPlayers)
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error)
+      return []
+    }
+  }, [isInitialized])
+
   return {
     isEnabled: isSomniaEnabled,
     isInitialized,
@@ -158,6 +206,8 @@ export function useSomnia() {
     lastPublishedLevel,
     publishLevelCompletion,
     fetchPlayerHistory,
+    fetchLeaderboard,
+    currentAddress: address,
   }
 }
 

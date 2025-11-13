@@ -25,7 +25,7 @@ const levelConfigs: LevelConfig[] = [
   { grid: 8, path: 12, showTime: 1200 }  // Level 15
 ]
 
-export type Screen = 'menu' | 'howToPlay' | 'game' | 'levelComplete' | 'gameOver' | 'history'
+export type Screen = 'menu' | 'howToPlay' | 'game' | 'levelComplete' | 'gameOver' | 'history' | 'leaderboard'
 
 export function useGame() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('menu')
@@ -243,6 +243,10 @@ export function useGame() {
     setCurrentScreen('history')
   }, [])
 
+  const showLeaderboard = useCallback(() => {
+    setCurrentScreen('leaderboard')
+  }, [])
+
   const showMenu = useCallback(() => {
     if (pathTimeoutRef.current) {
       clearTimeout(pathTimeoutRef.current)
@@ -290,6 +294,7 @@ export function useGame() {
     playAgain,
     showHowToPlay,
     showHistory,
+    showLeaderboard,
     showMenu,
     returnToMenu,
     handleTileClick,

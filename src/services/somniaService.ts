@@ -157,6 +157,86 @@ class SomniaService {
   }
 
   /**
+   * Fetch leaderboard data from Somnia
+   * Note: This fetches data from known publishers. In a production app, 
+   * you'd maintain a list of all player addresses or use an indexer service.
+   */
+  async fetchLeaderboard(knownPlayers: string[]): Promise<{ address: string; highestLevel: number; totalScore: number; completions: number }[]> {
+    if (!this.isInitialized || !this.sdk || !this.schemaId || !this.encoder) {
+      console.warn('❌ Somnia service not initialized. Cannot fetch leaderboard.')
+      return []
+    }
+
+    try {
+      console.log('🏆 Fetching leaderboard data for', knownPlayers.length, 'players...')
+      
+      // Parse and aggregate player data
+      const playerStats = new Map<string, { highestLevel: number; totalScore: number; completions: number }>()
+      
+      // Fetch data for each known player
+      for (const playerAddress of knownPlayers) {
+        try {
+          const playerData = await this.sdk.streams.getAllPublisherDataForSchema(this.schemaId, playerAddress)
+          
+          if (!playerData || playerData.length === 0) {
+            continue
+          }
+
+          for (const encodedData of playerData) {
+            try {
+              const decoded = this.encoder.decodeData(encodedData)
+              
+              let playerAddr = ''
+              let levelCompleted = 0
+              let score = 0
+
+              for (const field of decoded) {
+                const val = field.value?.value ?? field.value
+                
+                if (field.name === 'playerAddress') playerAddr = val.toString()
+                if (field.name === 'levelCompleted') levelCompleted = Number(val)
+                if (field.name === 'score') score = Number(val)
+              }
+
+              if (playerAddr) {
+                const existing = playerStats.get(playerAddr) || { highestLevel: 0, totalScore: 0, completions: 0 }
+                playerStats.set(playerAddr, {
+                  highestLevel: Math.max(existing.highestLevel, levelCompleted),
+                  totalScore: existing.totalScore + score,
+                  completions: existing.completions + 1
+                })
+              }
+            } catch (parseError) {
+              console.warn('Failed to parse player data:', parseError)
+            }
+          }
+        } catch (playerError) {
+          console.warn(`Failed to fetch data for player ${playerAddress}:`, playerError)
+        }
+      }
+
+      // Convert to array and sort by highest level, then by total score
+      const leaderboard = Array.from(playerStats.entries()).map(([address, stats]) => ({
+        address,
+        ...stats
+      }))
+
+      leaderboard.sort((a, b) => {
+        if (b.highestLevel !== a.highestLevel) {
+          return b.highestLevel - a.highestLevel
+        }
+        return b.totalScore - a.totalScore
+      })
+      
+      console.log('🏆 Leaderboard:', leaderboard.length, 'players')
+      return leaderboard
+    } catch (error) {
+      console.error('❌ Error fetching leaderboard:', error)
+      return []
+    }
+  }
+
+  /**
    * Fetch player's game history from Somnia
    */
   async fetchPlayerHistory(playerAddress: string): Promise<LevelCompletionData[]> {
