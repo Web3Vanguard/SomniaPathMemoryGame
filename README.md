@@ -1,24 +1,54 @@
-# Path Memory Game
+<div align="center">
+  <img src="/public/logo.png" alt="Path Memory Game Logo" width="200" />
+  <h1>Path Memory Game</h1>
+  <p><strong>A retro-futuristic memory challenge powered by the Somnia Blockchain.</strong></p>
+  
+  [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+  [![Somnia](https://img.shields.io/badge/Powered%20by-Somnia-purple.svg)](https://somnia.network/)
+</div>
 
-A memory-based path game built with React + Vite, featuring Web3 wallet integration via WalletConnect.
+## 💡 Inspiration
+We wanted to bring the classic "Simon Says" memory mechanic into the Web3 era, wrapping it in a nostalgic 8-bit arcade aesthetic. The goal was to create a fun, engaging way to demonstrate seamless blockchain integration without interrupting the gameplay flow. We believe that the best Web3 games use blockchain to enhance the experience, not complicate it.
 
-## Features
+## 🎮 What it does
+Path Memory Game is a progressive memory challenge where players must memorize and repeat increasingly complex paths on a grid.
 
-- 🎮 Interactive memory game with increasing difficulty
-- 🔗 Web3 wallet connection via WalletConnect
-- 🎨 Modern, responsive UI
-- 🎵 Sound effects for game interactions
-- 📱 Mobile-friendly design
+- **Play**: Test your memory across 15 levels of increasing difficulty.
+- **Connect**: Link your Web3 wallet via WalletConnect to save your progress.
+- **Compete**: Your level completion data (score, time, lives) is published directly to the **Somnia Blockchain** via data streams, creating an immutable record of your achievements.
 
-## Prerequisites
+## ⚙️ How we built it
+- **Frontend**: Built with **React** and **Vite** for a fast, responsive experience.
+- **Styling**: Custom CSS with a "Press Start 2P" font to nail the retro arcade vibe.
+- **Blockchain**: Integrated **Somnia** data streams to publish game events.
+- **Wallet**: Used **WalletConnect** and **Wagmi** for seamless wallet connection.
+- **Design**: Generated custom pixel art assets to ensure a cohesive visual identity.
 
+## 🚧 Challenges we ran into
+Integrating the Somnia data streams while maintaining a smooth 60fps gameplay loop was a challenge. We had to ensure that the blockchain transactions happened asynchronously without freezing the UI or delaying the next level. Handling various wallet states (connected, disconnected, wrong network) also required careful state management to prevent user frustration.
+
+## 🏆 Accomplishments that we're proud of
+We're particularly proud of the "invisible" blockchain integration. The game feels like a classic arcade game, but every victory is recorded on-chain. The generated pixel art logo and the cohesive neon aesthetic also turned out great, creating a polished, professional feel for the prototype.
+
+## 🧠 What we learned
+We gained a deep understanding of the Somnia protocol and how to structure game data for efficient on-chain storage. We also learned a lot about optimizing React for game loops and managing complex state transitions between game logic and blockchain events.
+
+## 🚀 What's next for Path Memory Game
+- **Global Leaderboards**: Querying the Somnia chain to display top players in real-time.
+- **NFT Rewards**: Minting unique pixel art NFTs for completing all 15 levels.
+- **Multiplayer**: A real-time "battle mode" where players challenge each other to complete patterns faster.
+
+---
+
+## 🛠️ Getting Started
+
+### Prerequisites
 - Node.js (v18 or higher)
-- npm or yarn
 - WalletConnect Project ID (get one from [WalletConnect Cloud](https://cloud.walletconnect.com))
 
-## Setup
+### Installation
 
-1. **Install dependencies:**
+1. **Clone the repo and install dependencies:**
    ```bash
    npm install
    ```
@@ -29,99 +59,12 @@ A memory-based path game built with React + Vite, featuring Web3 wallet integrat
    VITE_WALLET_CONNECT_PROJECT_ID=your_project_id_here
    VITE_SOMNIA_ENABLED=true
    ```
-   
-   Get your Project ID from [WalletConnect Cloud](https://cloud.walletconnect.com)
-   
-   **Note:** Somnia data streams integration is optional. Set `VITE_SOMNIA_ENABLED=true` to enable publishing level completion data to Somnia blockchain.
 
-3. **Move assets to public directory:**
+3. **Run the development server:**
    ```bash
-   mkdir -p public/fonts
-   cp fonts/PressStart2P-Regular.ttf public/fonts/
+   npm run dev
    ```
+   The app will be available at `http://localhost:3000`
 
-4. **Update CSS font path:**
-   The font path in `src/index.css` should point to `/fonts/PressStart2P-Regular.ttf`
-
-## Development
-
-Run the development server:
-
-```bash
-npm run dev
-```
-
-The app will be available at `http://localhost:3000`
-
-## Building
-
-Build for production:
-
-```bash
-npm run build
-```
-
-Preview the production build:
-
-```bash
-npm run preview
-```
-
-## Project Structure
-
-```
-PathMemoryGame/
-├── public/              # Static assets
-│   └── fonts/          # Font files
-├── src/
-│   ├── components/     # React components
-│   │   ├── WalletConnect.tsx
-│   │   ├── MenuScreen.tsx
-│   │   ├── HowToPlayScreen.tsx
-│   │   ├── GameScreen.tsx
-│   │   ├── LevelCompleteScreen.tsx
-│   │   └── GameOverScreen.tsx
-│   ├── config/         # Configuration files
-│   │   └── walletConfig.ts
-│   ├── hooks/          # Custom React hooks
-│   │   └── useGame.ts
-│   ├── utils/          # Utility functions
-│   │   └── audio.ts
-│   ├── App.tsx         # Main app component
-│   ├── main.tsx        # Entry point
-│   └── index.css       # Global styles
-├── package.json
-├── vite.config.ts      # Vite configuration
-└── tsconfig.json       # TypeScript configuration
-```
-
-## Game Rules
-
-1. Watch the path shown by highlighted tiles
-2. Remember the sequence
-3. Repeat the path by clicking tiles in order
-4. Complete all levels to win!
-5. You have 3 lives - make a mistake and lose a life
-
-## Wallet Integration
-
-The game includes WalletConnect integration, allowing players to connect their Web3 wallets. The wallet connection is optional and doesn't affect gameplay - it's ready for future blockchain features.
-
-Supported wallets:
-- MetaMask
-- WalletConnect
-- Coinbase Wallet
-- And more via WalletConnect protocol
-
-## Technologies Used
-
-- React 18
-- TypeScript
-- Vite
-- Wagmi v2
-- Web3Modal v4
-- WalletConnect
-
-## License
-
+## 📜 License
 This project is licensed under the Apache License 2.0.
